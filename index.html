@@ -108,20 +108,20 @@ const setSync=t=>$('sync').textContent=t;
 async function api(method,qs='',body){
   const r=await fetch('/api/data'+qs,{method,headers:{'Content-Type':'application/json','x-app-key':KEY},body:body?JSON.stringify(body):undefined});
   if(r.status===401){const k=prompt('ใส่รหัสผ่านเข้าระบบ');if(k==null)throw new Error('cancel');KEY=k;try{localStorage.setItem('nsk_key',k)}catch(e){}return api(method,qs,body)}
-  if(!r.ok)throw new Error(r.status);return r.json();
+  if(!r.ok){let m='';try{m=(await r.json()).error||''}catch(e){}throw new Error(r.status+(m?' '+m:''))}return r.json();
 }
 async function push(d){
   const s=S.snaps[d];if(!s||Object.values(s.stores).every(x=>x.file==='demo'))return;
   try{const r=await api('GET','?date='+d);if(r)s.stores={...r.stores,...s.stores};
     await api('POST','',{date:d,data:s});setSync('ซิงค์ข้อมูลกลางแล้ว')}
-  catch(e){setSync('ซิงค์ไม่สำเร็จ — เก็บในเครื่องนี้ไว้ก่อน')}
+  catch(e){setSync('ซิงค์ไม่สำเร็จ ('+e.message+')');console.error(e)}
 }
 async function pull(){
   try{setSync('กำลังซิงค์...');const {dates}=await api('GET');
     await Promise.all(dates.map(async d=>{const v=await api('GET','?date='+d);if(v)S.snaps[d]=v}));
     for(const d of Object.keys(S.snaps))if(!dates.includes(d))await push(d);
     for(const k in maps)delete maps[k];save();init();setSync('ซิงค์ข้อมูลกลางแล้ว')}
-  catch(e){setSync('ออฟไลน์ — ใช้ข้อมูลในเครื่องนี้')}
+  catch(e){setSync('ออฟไลน์ ('+e.message+') — ใช้ข้อมูลในเครื่องนี้');console.error(e)}
 }
 
 // ---------- import ----------
