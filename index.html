@@ -6,8 +6,8 @@
 <title>ระบบตรวจสอบสต๊อกติดลบ · CPAXTRA</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-:root{--bg:#f6f7f9;--card:#fff;--tx:#1d2330;--mut:#8a92a3;--bd:#e5e8ee;--g:#2b7a4b;--r:#d92b3a;--o:#d97706;--chip:#eef0f4;--sel:#eaf5ef}
-:root[data-theme=dark]{--bg:#12151b;--card:#1b1f27;--tx:#e8ebf2;--mut:#8f98ab;--bd:#2a303c;--g:#3aa468;--r:#ff6b78;--o:#f5a524;--chip:#262c37;--sel:#1d3328}
+:root{--bg:#f8f4ef;--card:#fff;--tx:#2b3140;--mut:#8a92a3;--bd:#ece7e0;--g:#f5a000;--ok:#1fb5a3;--r:#e8465a;--o:#e08a00;--chip:#f1eee9;--sel:#fff4de}
+:root[data-theme=dark]{--bg:#12151b;--card:#1b1f27;--tx:#e8ebf2;--mut:#8f98ab;--bd:#2a303c;--g:#fbbf24;--ok:#2dd4bf;--r:#ff6b78;--o:#f5a524;--chip:#262c37;--sel:#3a2f14}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.4 "Sarabun","Noto Sans Thai",system-ui,sans-serif}
 header{background:var(--card);border-bottom:1px solid var(--bd);padding:10px 24px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
@@ -56,19 +56,43 @@ tr:hover td{background:var(--sel)}
 .hb{display:grid;grid-template-columns:62px 1fr 92px;gap:8px;align-items:center;margin:7px 0;font-size:13px;cursor:pointer}
 .hb .t{background:var(--chip);border-radius:6px;height:16px;overflow:hidden}.hb .t i{display:block;height:100%;background:var(--g);border-radius:6px}
 .hb:hover b{color:var(--g)}.hb span:last-child{text-align:right;font-variant-numeric:tabular-nums}
-.up{color:var(--r)}.dn{color:var(--g)}
+.up{color:var(--r)}.dn{color:var(--ok)}
+body{padding-left:60px}
+.rail{position:fixed;left:0;top:0;bottom:0;width:60px;background:var(--card);border-right:1px solid var(--bd);display:flex;flex-direction:column;align-items:center;gap:8px;padding-top:14px;z-index:5}
+.rail .lg{width:34px;height:34px;border-radius:50%;border:2px solid var(--g);color:var(--g);display:grid;place-items:center;font-weight:800;margin-bottom:10px}
+.rail button{border:0;background:none;font-size:20px;width:42px;height:42px;border-radius:10px;cursor:pointer;opacity:.55}.rail button.on,.rail button:hover{background:var(--sel);opacity:1}
+.dg{display:grid;grid-template-columns:minmax(300px,1fr) 2fr;gap:20px;align-items:start}
+.cd{background:var(--card);border-radius:6px;margin-bottom:20px;box-shadow:0 1px 4px #0000000d;overflow:hidden}
+.ch{padding:16px 20px;font-size:17px;font-weight:600;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center}.ch small{font-weight:400;color:var(--mut);font-size:12px}
+.cb{padding:14px 20px}
+.tl{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:20px}
+.tle{color:#fff;border-radius:6px;padding:20px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tle i{font-style:normal;font-size:34px}.tle big{display:block;font-size:26px;font-weight:300;text-align:right}.tle small{display:block;text-align:right;font-size:13px;opacity:.95}
+.rm{display:flex;align-items:center;gap:14px;padding:11px 20px;border-bottom:1px solid var(--bd);cursor:pointer;color:#2f6fd6}.rm:hover{background:var(--sel)}
+.rm b{min-width:34px;text-align:center;border-radius:6px;padding:3px 6px;font-size:12px}
+.kr{display:grid;grid-template-columns:repeat(4,1fr);text-align:center;padding:18px 10px}.ki{padding:0 8px;border-right:1px solid var(--bd)}.ki:last-child{border:0}.kb{font-size:30px;margin-top:6px}
+.gt{width:100%;border:1px solid var(--bd)}.gt th,.gt td{border:1px solid var(--bd);padding:10px 14px}.gt th{text-transform:none;font-size:13px;cursor:default;position:static}
+.gt tr.cl{cursor:pointer}.gt a,.gt .lk{color:#2f6fd6}
+.bg{border-radius:4px;color:#fff;padding:2px 9px;font-size:12px}.bg.t{background:#20bfae}.bg.r{background:#ef5350}.bg.o{background:#f5a000}.bg.n{background:var(--mut)}
+.pb{width:70px;height:9px;border-radius:9px;background:var(--chip);overflow:hidden}.pb i{display:block;height:100%;background:linear-gradient(90deg,#f5a000,#7c4dff);border-radius:9px}
+.pl{color:#20bfae;font-weight:800;font-size:18px;text-align:center}
+.qt{background:#666;color:#eee;font-style:italic;font-size:19px;padding:44px 28px;line-height:1.6;border-radius:6px 6px 0 0}.qt small{display:block;margin-top:14px;font-size:12px;opacity:.8}
+.bot{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}.bot .cd{text-align:center}
+@media print{.rail{display:none}body{padding:0}}
+@media(max-width:1100px){.dg{grid-template-columns:1fr}.tl{grid-template-columns:repeat(2,1fr)}.kr,.bot{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){body{padding-left:48px}.rail{width:48px}.tl,.kr,.bot{grid-template-columns:1fr}}
 #drop{display:none;position:fixed;inset:0;background:#0008;color:#fff;font-size:26px;place-items:center;z-index:9}
 @media print{header .btn,header .ic,.dsel,#sync{display:none}body{background:#fff}.wrap{padding:0}}
 @media(max-width:1100px){.g2,.g3{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}.divs{grid-template-columns:repeat(3,1fr)}.wrap{padding:14px}}
 </style>
 </head>
 <body>
+<nav class="rail"><div class="lg">C</div><button id="r_d" onclick="view('dash')" title="Dashboard">📊</button><button id="r_t" onclick="view('detail')" title="รายละเอียด">📋</button><button onclick="fi.click()" title="Import ไฟล์">⬆</button><button onclick="view('detail');$('more').classList.add('show')" title="ตัวกรอง/ตั้งค่า">⚙</button></nav>
 <header>
   <div class="logo">SOH</div>
   <div><h1>ระบบตรวจสอบสต๊อกติดลบ (No Pack Size)</h1><small id="sub">กรองเฉพาะ ASOH &lt; 0 • ตัด Pack Size • นับอายุวันติดลบต่อเนื่อง</small></div>
   <span class="sp"></span>
   <div class="dsel">วันที่ข้อมูล: <select id="date"></select></div>
-  <button class="ic nv" id="nv_d" onclick="view('dash')">📊 Dashboard</button><button class="ic nv" id="nv_t" onclick="view('detail')">📋 รายละเอียด</button>
   <span id="sync" class="mut" style="font-size:12px"></span>
   <button class="btn" onclick="fi.click()">⬆ Import ไฟล์</button>
   <button class="ic" title="ตัวกรองเพิ่มเติม" onclick="$('more').classList.toggle('show')">⚙</button>
@@ -209,7 +233,7 @@ let VIEW=[];
 function view(v){S.view=v;try{history.replaceState(null,'','#'+v)}catch(e){}render()}
 function render(){
   const d=S.view==='dash';$('v_dash').style.display=d?'':'none';$('v_detail').style.display=d?'none':'';
-  $('nv_d').classList.toggle('on',d);$('nv_t').classList.toggle('on',!d);
+  $('r_d').classList.toggle('on',d);$('r_t').classList.toggle('on',!d);
   d?renderDash():renderDetail();
 }
 function renderDetail(){
@@ -220,7 +244,7 @@ function renderDetail(){
     K('new','ติดลบใหม่วันนี้ (1 วัน)',newc,'เพิ่งพบในรอบข้อมูลนี้','var(--o)','c')+
     K('old','ติดลบเรื้อรัง (≥ 3 วัน)',chronic,'ควรเร่งตรวจสอบสต๊อก','var(--r)','c')+
     K('','มูลค่าติดลบรวม (ประมาณ)','฿'+Math.round(tv).toLocaleString(),'คำนวณจาก |ASOH| × Selling Price','var(--tx)')+
-    K('res','หายติดลบแล้ว (เทียบวันก่อน)',res.length,'รายการที่กลับมาเป็น ≥ 0','var(--g)','c');
+    K('res','หายติดลบแล้ว (เทียบวันก่อน)',res.length,'รายการที่กลับมาเป็น ≥ 0','var(--ok)','c');
   $('packn').textContent=exPk?`ตัดออก ${exPk} รายการ`:'';
   $('divs').innerHTML=DIVS.map(([c,n,d])=>{const x=cur.filter(r=>r.div===c);return `<div class="d ${S.div===c?'on':''}" onclick="dv('${c}')"><div><b>${c}</b><span>${d}</span></div><strong>${x.length}</strong><small>${n}</small></div>`}).join('');
   $('t_cur').textContent=`รายการติดลบปัจจุบัน (${cur.length})`;$('t_res').textContent=`หายติดลบแล้ว (${res.length})`;
@@ -264,47 +288,70 @@ function demo(){
 }
 // ---------- Executive dashboard ----------
 const money=v=>'฿'+Math.round(v).toLocaleString('en-US'),cmp=v=>v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':Math.round(v);
+const PAL=['#ff6b9a','#f9a825','#03a9f4','#7c4dff','#20bfae','#ef5350','#90a4ae','#3f51b5','#9ccc3c'],dcol=c=>PAL[DIVS.findIndex(x=>x[0]===c)];
 function trendSvg(t,key){
   const W=760,H=230,L=48,B=28,T=14,R=16,mx=Math.max(...t.map(x=>x[key]),1),X=i=>t.length<2?(L+W-R)/2:L+i*(W-L-R)/(t.length-1),Y=v=>T+(H-T-B)*(1-v/mx);
-  let g='';for(let i=0;i<=4;i++){const v=mx*i/4,y=Y(v);g+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="var(--bd)"/><text x="${L-6}" y="${y+4}" text-anchor="end" font-size="11" style="fill:var(--mut)">${cmp(v)}</text>`}
-  const pts=t.map((x,i)=>`${X(i)},${Y(x[key])}`).join(' ');
-  const step=Math.ceil(t.length/8);
-  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">${g}
-    ${t.length>1?`<polygon points="${L},${H-B} ${pts} ${W-R},${H-B}" style="fill:var(--g);opacity:.12"/><polyline points="${pts}" fill="none" style="stroke:var(--g)" stroke-width="2.5"/>`:''}
-    ${t.map((x,i)=>`<circle cx="${X(i)}" cy="${Y(x[key])}" r="4" style="fill:var(--g)"/>${i%step===0||i===t.length-1?`<text x="${X(i)}" y="${H-8}" text-anchor="middle" font-size="11" style="fill:var(--mut)">${x.d.slice(5)}</text>`:''}`).join('')}</svg>`;
+  let g='';for(let i=0;i<=4;i++){const v=mx*i/4,y=Y(v);g+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="var(--bd)"/><text x="${L-6}" y="${y+4}" text-anchor="end" font-size="12" style="fill:var(--mut)">${cmp(v)}</text>`}
+  const pts=t.map((x,i)=>`${X(i)},${Y(x[key])}`).join(' '),step=Math.ceil(t.length/7);
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">${g}${t.length>1?`<polygon points="${L},${H-B} ${pts} ${W-R},${H-B}" fill="#03a9f4" opacity=".12"/><polyline points="${pts}" fill="none" stroke="#03a9f4" stroke-width="2.5"/>`:''}
+    ${t.map((x,i)=>`<circle cx="${X(i)}" cy="${Y(x[key])}" r="4" fill="#03a9f4"/>${i%step===0||i===t.length-1?`<text x="${X(i)}" y="${H-8}" text-anchor="middle" font-size="12" style="fill:var(--mut)">${x.d.slice(5)}</text>`:''}`).join('')}</svg>`;
 }
+function pie(items){
+  items=items.filter(x=>x[1]>0);const tot=items.reduce((a,x)=>a+x[1],0)||1,R=90,cx=110,cy=100;let a0=-Math.PI/2,o='';
+  items.forEach(([l,v,c])=>{const a1=a0+v/tot*2*Math.PI;o+=v/tot>.9999?`<circle cx="${cx}" cy="${cy}" r="${R}" fill="${c}"/>`:`<path d="M${cx},${cy} L${cx+R*Math.cos(a0)},${cy+R*Math.sin(a0)} A${R},${R} 0 ${a1-a0>Math.PI?1:0} 1 ${cx+R*Math.cos(a1)},${cy+R*Math.sin(a1)}Z" fill="${c}"/>`;a0=a1});
+  return `<div style="text-align:center">${items.map(([l,v,c])=>`<span style="display:inline-flex;align-items:center;gap:4px;margin:2px 7px;font-size:12px"><i style="width:14px;height:8px;background:${c};display:inline-block"></i>${l} ${(v/tot*100).toFixed(0)}%</span>`).join('')}</div><svg viewBox="0 0 220 200" style="width:100%;max-width:250px;display:block;margin:auto">${o}</svg>`;
+}
+function cols(items){
+  const W=420,H=240,B=26,T=22,mx=Math.max(...items.map(x=>x[1]),1),sl=(W-40)/items.length,bw=Math.min(58,sl-16);
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%">${items.map(([l,v,c],i)=>{const x=30+i*sl+(sl-bw)/2,h=(H-B-T)*v/mx;return `<rect x="${x}" y="${H-B-h}" width="${bw}" height="${h}" rx="4" fill="${c}"/><text x="${x+bw/2}" y="${H-B-h-5}" text-anchor="middle" font-size="11" style="fill:var(--tx)">${cmp(v)}</text><text x="${x+bw/2}" y="${H-8}" text-anchor="middle" font-size="11" style="fill:var(--mut)">${esc(String(l).slice(0,8))}</text>`}).join('')}</svg>`;
+}
+function stacked(dd){
+  const W=420,H=250,L=42,B=26,T=10,tot=x=>Object.values(x.g).reduce((a,b)=>a+b,0),mx=Math.max(...dd.map(tot),1),sl=(W-L-10)/dd.length,bw=Math.min(46,sl-12);let o='';
+  for(let i=0;i<=4;i++){const y=T+(H-T-B)*(1-i/4);o+=`<line x1="${L}" x2="${W-10}" y1="${y}" y2="${y}" stroke="var(--bd)" stroke-dasharray="3 3"/><text x="${L-4}" y="${y+4}" text-anchor="end" font-size="10" style="fill:var(--mut)">${cmp(mx*i/4)}</text>`}
+  dd.forEach((x,i)=>{let y=H-B;const bx=L+i*sl+(sl-bw)/2;DIVS.forEach(([c])=>{const h=(H-T-B)*(x.g[c]||0)/mx;if(h>0){y-=h;o+=`<rect x="${bx}" y="${y}" width="${bw}" height="${h}" fill="${dcol(c)}"/>`}});o+=`<text x="${bx+bw/2}" y="${H-8}" text-anchor="middle" font-size="10" style="fill:var(--mut)">${x.d.slice(5)}</text>`});
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%">${o}</svg>`;
+}
+function gauge(p,c){const r=42,C=2*Math.PI*r;return `<svg viewBox="0 0 120 120" style="width:130px"><circle cx="60" cy="60" r="${r}" fill="none" stroke="var(--chip)" stroke-width="12"/><circle cx="60" cy="60" r="${r}" fill="none" stroke="${c}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${C*p/100} ${C}" transform="rotate(-90 60 60)"/><text x="60" y="66" text-anchor="middle" font-size="20" font-weight="700" style="fill:var(--tx)">${Math.round(p)}%</text></svg>`}
+function spark(t){const mx=Math.max(...t.map(x=>x.v),1),n=t.length,pts=t.map((x,i)=>`${n<2?150:10+i*280/(n-1)},${70-60*x.v/mx}`).join(' ');return `<svg viewBox="0 0 300 80" style="width:100%"><polyline points="${pts}" fill="none" stroke="#f5a000" stroke-width="2.5"/></svg>`}
 function group(rows,k,n){const m={};rows.forEach(r=>{const g=r[k]||'-';(m[g]??={n:0,v:0}).n++;m[g].v+=r.val});return Object.entries(m).sort((a,b)=>b[1].v-a[1].v).slice(0,n)}
-function hbars(items,click){const mx=Math.max(...items.map(x=>x[1].v),1);
-  return items.map(([k,o,sub])=>`<div class="hb" ${click?`onclick="${click}('${k}')"`:''}><b>${esc(k)}</b><span class="t"><i style="width:${o.v/mx*100}%"></i></span><span>${cmp(o.v)} <small class="mut">(${o.n})</small></span></div>`).join('')||'<div class="mut">ไม่มีข้อมูล</div>'}
-function goDiv(c){S.div=c;S.tab='cur';S.kpi='';S.page=0;view('detail')}
+function jump(o){reset();if(o.age)$('age').value=o.age;if(o.vmin)$('vmin').value=o.vmin;S.kpi=o.kpi||'';S.tab=o.tab||'cur';view('detail')}
+function goDiv(c){reset();S.div=c;view('detail')}
+const CD=(t,b,x='')=>`<div class="cd"><div class="ch">${t}<small>⤡</small></div>${x?b:`<div class="cb">${b}</div>`}</div>`;
 function renderDash(){
   const ds=dates();
-  if(!ds.length){$('v_dash').innerHTML='<div class="box empty">กด Import ไฟล์ Item List เพื่อเริ่มต้น</div>';return}
-  const {cur,res,prevD}=derive(),tv=cur.reduce((a,r)=>a+r.val,0);
-  const trend=ds.slice(-30).map(d=>{const r=rowsOf(d);return {d,n:r.length,v:r.reduce((a,x)=>a+Math.abs(x.asoh)*x.price,0)}});
-  const pt=prevD?trend.find(x=>x.d===prevD)||{n:rowsOf(prevD).length,v:rowsOf(prevD).reduce((a,x)=>a+Math.abs(x.asoh)*x.price,0)}:null;
-  const dl=(a,b,f)=>pt?`<small class="${a>b?'up':a<b?'dn':'mut'}">${a>b?'▲':a<b?'▼':'–'} ${f(Math.abs(a-b))} เทียบ ${prevD.slice(5)}</small>`:'<small class="mut">ยังไม่มีวันก่อนให้เทียบ</small>';
-  const nw=cur.filter(r=>r.age===1),ch=cur.filter(r=>r.age>=3),chv=ch.reduce((a,r)=>a+r.val,0);
-  const dv_=DIVS.map(([c,n])=>{const x=cur.filter(r=>r.div===c);return [c,{n:x.length,v:x.reduce((a,r)=>a+r.val,0)}]}).filter(x=>x[1].n).sort((a,b)=>b[1].v-a[1].v);
-  const ages=[['ใหม่ 1 วัน',r=>r.age===1],['2 วัน',r=>r.age===2],['3-6 วัน',r=>r.age>=3&&r.age<7],['7 วันขึ้นไป',r=>r.age>=7]].map(([l,f])=>{const x=cur.filter(f);return [l,{n:x.length,v:x.reduce((a,r)=>a+r.val,0)}]});
-  const top=cur.slice().sort((a,b)=>b.val-a.val).slice(0,10), top3=dv_.slice(0,2).map(([c,o])=>`${c} (${money(o.v)})`).join(' และ ');
-  const K=(l,v,sub,c)=>`<div class="k"><span>${l}</span><b style="color:${c||'var(--tx)'}">${v}</b>${sub}</div>`;
+  if(!ds.length){$('v_dash').innerHTML='<div class="cd"><div class="cb empty">กด Import ไฟล์ Item List เพื่อเริ่มต้น</div></div>';return}
+  const {cur,res,prevD}=derive(),sv=a=>a.reduce((x,r)=>x+r.val,0),tv=sv(cur),vOf=r=>Math.abs(r.asoh)*r.price;
+  const trend=ds.slice(-30).map(d=>{const r=rowsOf(d);return {d,n:r.length,v:r.reduce((a,x)=>a+vOf(x),0)}});
+  const prow=prevD?rowsOf(prevD):[],pv=prow.reduce((a,x)=>a+vOf(x),0),pn=prow.length;
+  const nw=cur.filter(r=>r.age===1),ch=cur.filter(r=>r.age>=3),l7=cur.filter(r=>r.age>=7),pct=(a,b)=>b?(a-b)/b*100:null;
+  const arrow=p=>p==null||p===0?'<span class="mut">–</span>':`<span style="color:${p>0?'var(--r)':'var(--ok)'}">${p>0?'▲':'▼'} ${Math.abs(p).toFixed(1)}%</span>`;
+  const dvs=DIVS.map(([c,n,d])=>{const x=cur.filter(r=>r.div===c),p=prow.filter(r=>divOf(r.dept)===c);return {c,n,d,cnt:x.length,v:sv(x),pv:p.reduce((a,r)=>a+vOf(r),0)}}).filter(x=>x.cnt||x.pv).sort((a,b)=>b.v-a.v);
+  const bd=(v,p)=>p?`<span class="bg ${v>p?'r':'t'}">${v>p?'▲':'▼'} ${Math.abs((v-p)/p*100).toFixed(2)}%</span>`:'<span class="bg o">ใหม่</span>';
+  const rem=[[nw.length,'ติดลบใหม่วันนี้',"{kpi:'new'}",'#f5a000'],[ch.length,'ติดลบเรื้อรัง ≥ 3 วัน',"{kpi:'old'}",'#20bfae'],[l7.length,'ติดลบ ≥ 7 วัน',"{age:'7'}",'#ef5350'],[cur.filter(r=>r.val>=10000).length,'รายการมูลค่า ≥ ฿10,000',"{vmin:'10000'}",'#7c4dff'],[res.length,'หายติดลบแล้ว (เทียบวันก่อน)',"{tab:'res'}",'#3f9cf6']];
+  const top=cur.slice().sort((a,b)=>b.val-a.val).slice(0,10),pc=cur.length?ch.length/cur.length*100:0;
+  const tile=(bg,ic,v,l)=>`<div class="tle" style="background:${bg}"><i>${ic}</i><div><big>${v}</big><small>${l}</small></div></div>`;
+  const d8=ds.slice(-8).map(d=>{const g={};rowsOf(d).forEach(r=>{const c=divOf(r.dept);g[c]=(g[c]||0)+vOf(r)});return {d,g}});
+  const sum=`ข้อมูลวันที่ ${S.date}: พบสินค้าติดลบ ${cur.length.toLocaleString()} รายการ มูลค่าประมาณ ${money(tv)}${prevD?` (${tv>pv?'เพิ่มขึ้น':tv<pv?'ลดลง':'เท่าเดิม'}${pv?' '+Math.abs((tv-pv)/pv*100).toFixed(1)+'%':''} จากวันก่อน)`:''} · เรื้อรังตั้งแต่ 3 วัน ${ch.length} รายการ${dvs[0]?` · มูลค่าสูงสุดอยู่ที่ ${dvs[0].c} (${money(dvs[0].v)})`:''}`;
+  const kp=(l,b)=>`<div class="ki"><div>${l}</div><div class="kb">${b}</div></div>`;
   $('v_dash').innerHTML=`
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px"><h2 style="margin:0;font-size:20px">สรุปสต๊อกติดลบ — ข้อมูลวันที่ ${S.date}</h2><button class="btn" onclick="print()">🖨 พิมพ์ / บันทึก PDF</button></div>
-  <div class="ins"><b>สรุปสำหรับผู้บริหาร:</b> พบสินค้าติดลบ <b>${cur.length.toLocaleString()}</b> รายการ มูลค่าประมาณ <b>${money(tv)}</b>${pt?` (${tv>pt.v?'เพิ่มขึ้น':tv<pt.v?'ลดลง':'เท่าเดิม'} ${pt.v?Math.abs((tv-pt.v)/pt.v*100).toFixed(1):'–'}% จากวันก่อน)`:''}
-    · ติดลบเรื้อรังตั้งแต่ 3 วัน <b>${ch.length}</b> รายการ (${money(chv)})${top3?` · Division ที่มูลค่าสูงสุด: <b>${top3}</b>`:''}${res.length?` · หายติดลบแล้ว <b>${res.length}</b> รายการ`:''}</div>
-  <div class="kpis" style="margin-top:14px">
-    ${K('มูลค่าติดลบรวม',money(tv),dl(tv,pt?.v,money),'var(--r)')}
-    ${K('รายการติดลบ',cur.length.toLocaleString(),dl(cur.length,pt?.n,x=>x),'var(--tx)')}
-    ${K('ติดลบใหม่วันนี้',nw.length,`<small class="mut">${money(nw.reduce((a,r)=>a+r.val,0))}</small>`,'var(--o)')}
-    ${K('ติดลบเรื้อรัง ≥ 3 วัน',ch.length,`<small class="mut">${money(chv)}</small>`,'var(--r)')}
-    ${K('หายติดลบแล้ว',res.length,'<small class="mut">เทียบวันก่อน</small>','var(--g)')}</div>
-  <div class="g2"><div class="box"><h4>แนวโน้มมูลค่าติดลบ (฿) ${trend.length} วันล่าสุด</h4>${trendSvg(trend,'v')}</div>
-    <div class="box"><h4>มูลค่าแยกตามอายุวันติดลบ</h4>${hbars(ages)}<h4 style="margin-top:18px">แนวโน้มจำนวนรายการ</h4>${trendSvg(trend.slice(-10),'n')}</div></div>
-  <div class="g3"><div class="box"><h4>มูลค่าแยกตาม Division <small class="mut">(คลิกเพื่อดูรายละเอียด)</small></h4>${hbars(dv_,'goDiv')}</div>
-    <div class="box"><h4>Buyer ที่มูลค่าติดลบสูงสุด</h4>${hbars(group(cur,'buy',7))}</div>
-    <div class="box"><h4>Supplier ที่มูลค่าติดลบสูงสุด</h4>${hbars(group(cur,'sup',7))}</div></div>
-  <div class="box" style="margin-top:14px;padding:0"><h4 style="padding:16px 18px 0">10 อันดับสินค้าติดลบมูลค่าสูงสุด</h4><div class="tw"><table><thead><tr><th>#</th><th>Div</th><th>Item No</th><th>Description</th><th class="n">ASOH</th><th class="n">มูลค่า (฿)</th><th>ติดลบต่อเนื่อง</th><th>Buyer</th></tr></thead><tbody>${top.map((r,i)=>`<tr><td>${i+1}</td><td><span class="div">${r.div}</span></td><td><b>${esc(r.i)}</b></td><td>${esc(r.desc)}</td><td class="n neg">${f(r.asoh)}</td><td class="n">${f(r.val,0)}</td><td><span class="pill ${r.age===1?'new':r.age>=3?'old':''}">${r.age} วัน${r.age===1?' (ใหม่)':''}</span></td><td>${esc(r.buy)}</td></tr>`).join('')}</tbody></table></div></div>`;
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:8px;flex-wrap:wrap"><h2 style="margin:0;font-size:20px;font-weight:600">Executive Dashboard · สต๊อกติดลบ ${S.date}</h2><button class="btn" onclick="print()">🖨 พิมพ์ / บันทึก PDF</button></div>
+  <div class="dg"><div>
+    ${CD('สิ่งที่ต้องติดตาม',rem.map(([n,l,o,c])=>`<div class="rm" onclick="jump(${o})"><b style="background:${c}22;color:${c}">${n}</b>${l}</div>`).join(''),1)}
+    ${CD('มูลค่าติดลบแยกตาม Buyer (Top 5)',cols(group(cur,'buy',5).map(([k,o],i)=>[k,o.v,PAL[i]])))}
+    ${CD('แนวโน้มมูลค่าติดลบ (฿)',trendSvg(trend,'v'))}
+    ${CD('สัดส่วนมูลค่าตาม Division',pie(dvs.map(x=>[x.c,x.v,dcol(x.c)])))}
+    ${CD('มูลค่ารายวันแยก Division',stacked(d8)+'<div style="text-align:center">'+DIVS.map(([c])=>`<span style="font-size:11px;margin:0 5px"><i style="display:inline-block;width:10px;height:10px;background:${dcol(c)}"></i> ${c}</span>`).join('')+'</div>')}
+  </div><div>
+    <div class="tl">${tile('linear-gradient(135deg,#4a7cf6,#5a8cff)','💰',money(tv),'มูลค่าติดลบรวม')}${tile('linear-gradient(135deg,#ef4b62,#f46a7e)','⚠️',ch.length,'ติดลบเรื้อรัง ≥ 3 วัน')}${tile('linear-gradient(135deg,#17b8a6,#2fd0bd)','✅',res.length,'หายติดลบแล้ว')}${tile('linear-gradient(135deg,#7a4df0,#9566ff)','🆕',nw.length,'ติดลบใหม่วันนี้')}</div>
+    ${CD('Key Performance Indicators',`<div class="kr">${kp('มูลค่าติดลบ',arrow(pct(tv,pv)))}${kp('จำนวนรายการ',arrow(pct(cur.length,pn)))}${kp('สัดส่วนเรื้อรัง',`<span style="color:var(--r)">${pc.toFixed(1)}%</span>`)}${kp('รายการติดลบ',`<span>${cur.length.toLocaleString()}</span>`)}</div>
+      <div style="padding:0 20px 20px;overflow:auto"><table class="gt"><thead><tr><th>Division</th><th>Dept</th><th class="n">รายการ</th><th class="n">มูลค่าปัจจุบัน</th><th class="n">วันก่อน</th><th>เปลี่ยนแปลง</th></tr></thead><tbody>${dvs.map(x=>`<tr class="cl" onclick="goDiv('${x.c}')"><td><span class="lk">${x.c} · ${x.n}</span></td><td>${x.d}</td><td class="n">${x.cnt}</td><td class="n">${money(x.v)}</td><td class="n">${prevD?money(x.pv):'-'}</td><td>${prevD?bd(x.v,x.pv):'-'}</td></tr>`).join('')}</tbody></table></div>`,1)}
+    ${CD('10 อันดับสินค้าติดลบมูลค่าสูงสุด',`<div style="padding:14px 20px 20px;overflow:auto"><table class="gt"><thead><tr><th></th><th>รายการ</th><th>อายุติดลบ</th><th>Supplier</th><th>Status</th><th>เริ่มติดลบ</th><th class="n">ASOH</th><th class="n">มูลค่า (฿)</th></tr></thead><tbody>${top.map(r=>`<tr><td class="pl">＋</td><td><b>${esc(r.desc)}</b><div class="mut" style="font-size:12px">${esc(r.i)} · ${r.div} · Buyer ${esc(r.buy)}</div></td><td><div class="pb" title="${r.age} วัน"><i style="width:${Math.min(100,r.age/7*100)}%"></i></div><small class="mut">${r.age} วัน</small></td><td>${esc(r.sup)}</td><td><span class="bg ${r.st==='Active'?'t':'n'}">${esc(r.st)}</span></td><td>${r.start}</td><td class="n neg">${f(r.asoh)}</td><td class="n">${f(r.val,0)}</td></tr>`).join('')}</tbody></table></div>`,1)}
+    <div class="cd"><div class="qt">${sum}<small>— สรุปอัตโนมัติสำหรับผู้บริหาร</small></div></div>
+    <div class="bot">
+      <div class="cd"><div class="cb"><div class="mut">มูลค่าติดลบรวม</div><div style="font-size:30px;font-weight:700;color:var(--r);margin:14px 0">${money(tv)}</div></div><div style="background:var(--sel);padding:14px;font-weight:700;font-size:20px;color:#3f51b5">Negative Stock</div></div>
+      <div class="cd"><div class="cb"><div class="mut">สัดส่วนรายการเรื้อรัง ≥ 3 วัน</div>${gauge(pc,'#ef5350')}</div></div>
+      <div class="cd"><div class="cb"><div class="mut">แนวโน้มมูลค่า</div>${spark(trend)}</div></div>
+    </div></div></div>`;
 }
 init();pull();
 </script>
