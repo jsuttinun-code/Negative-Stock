@@ -59,6 +59,7 @@ tr:hover td{background:var(--sel)}
   <div><h1>ระบบตรวจสอบสต๊อกติดลบ (No Pack Size)</h1><small id="sub">กรองเฉพาะ ASOH &lt; 0 • ตัด Pack Size • นับอายุวันติดลบต่อเนื่อง</small></div>
   <span class="sp"></span>
   <div class="dsel">วันที่ข้อมูล: <select id="date"></select></div>
+  <span id="sync" class="mut" style="font-size:12px"></span>
   <button class="btn" onclick="fi.click()">⬆ Import ไฟล์</button>
   <button class="ic" title="ตัวกรองเพิ่มเติม" onclick="$('more').classList.toggle('show')">⚙</button>
   <button class="ic" title="โหมดมืด/สว่าง" onclick="theme()">🌙</button>
@@ -101,20 +102,43 @@ try{document.documentElement.dataset.theme=localStorage.getItem('nsk_theme')||'l
 function theme(){const t=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=t;try{localStorage.setItem('nsk_theme',t)}catch(e){}}
 function save(){try{localStorage.setItem('nsk_snaps',JSON.stringify(S.snaps))}catch(e){alert('พื้นที่เก็บข้อมูลในเบราว์เซอร์เต็ม — ข้อมูลจะหายเมื่อปิดหน้านี้')}}
 
+// ---------- sync (Vercel API) ----------
+let KEY='';try{KEY=localStorage.getItem('nsk_key')||''}catch(e){}
+const setSync=t=>$('sync').textContent=t;
+async function api(method,qs='',body){
+  const r=await fetch('/api/data'+qs,{method,headers:{'Content-Type':'application/json','x-app-key':KEY},body:body?JSON.stringify(body):undefined});
+  if(r.status===401){const k=prompt('ใส่รหัสผ่านเข้าระบบ');if(k==null)throw new Error('cancel');KEY=k;try{localStorage.setItem('nsk_key',k)}catch(e){}return api(method,qs,body)}
+  if(!r.ok)throw new Error(r.status);return r.json();
+}
+async function push(d){
+  const s=S.snaps[d];if(!s||Object.values(s.stores).every(x=>x.file==='demo'))return;
+  try{const r=await api('GET','?date='+d);if(r)s.stores={...r.stores,...s.stores};
+    await api('POST','',{date:d,data:s});setSync('ซิงค์ข้อมูลกลางแล้ว')}
+  catch(e){setSync('ซิงค์ไม่สำเร็จ — เก็บในเครื่องนี้ไว้ก่อน')}
+}
+async function pull(){
+  try{setSync('กำลังซิงค์...');const {dates}=await api('GET');
+    await Promise.all(dates.map(async d=>{const v=await api('GET','?date='+d);if(v)S.snaps[d]=v}));
+    for(const d of Object.keys(S.snaps))if(!dates.includes(d))await push(d);
+    for(const k in maps)delete maps[k];save();init();setSync('ซิงค์ข้อมูลกลางแล้ว')}
+  catch(e){setSync('ออฟไลน์ — ใช้ข้อมูลในเครื่องนี้')}
+}
+
 // ---------- import ----------
 fi.onchange=e=>load(e.target.files);
 addEventListener('dragover',e=>{e.preventDefault();$('drop').style.display='grid'});
 addEventListener('dragleave',e=>{if(!e.relatedTarget)$('drop').style.display='none'});
 addEventListener('drop',e=>{e.preventDefault();$('drop').style.display='none';load(e.dataTransfer.files)});
 async function load(files){
-  const bad=[];let last='';
+  const bad=[],touched=new Set();let last='';
   for(const f of files){try{
     const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
     const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true,defval:null});
-    last=ingest(rows,f.name)||last;
+    last=ingest(rows,f.name)||last;touched.add(last);
   }catch(e){bad.push(f.name)}}
   if(bad.length)alert('อ่านไฟล์ไม่ได้ (ต้องเป็นรายงาน Item List): '+bad.join(', '));
   if(last)S.date=last; save();init();
+  await Promise.all([...touched].filter(Boolean).map(push));
 }
 function ingest(rows,fname){
   const hi=rows.findIndex(r=>r&&r.some(c=>String(c||'').trim()==='Item No')); if(hi<0)throw 0;
@@ -168,7 +192,7 @@ $('date').onchange=e=>{S.date=e.target.value;init()};
 ['q','age','status','store','buyer','cls','amin','vmin','pack'].forEach(i=>$(i).oninput=()=>{S.page=0;i==='pack'?init():render()});
 function tab(t){S.tab=t;S.page=0;render()}
 function reset(){S.div='';S.kpi='';['q','age','status','store','buyer','cls','amin','vmin'].forEach(i=>$(i).value='');S.page=0;render()}
-function wipe(){if(confirm('ล้างข้อมูลที่นำเข้าทั้งหมด?')){S.snaps={};S.date='';for(const k in maps)delete maps[k];save();init()}}
+function wipe(){if(confirm('ล้างข้อมูลทั้งหมด (รวมข้อมูลกลางที่ทุกเครื่องใช้ร่วมกัน)?')){api('DELETE','?date=all').catch(()=>{});S.snaps={};S.date='';for(const k in maps)delete maps[k];save();init()}}
 const f=(v,d=3)=>v==null?'-':(+v).toLocaleString('en-US',{maximumFractionDigits:d});
 const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 let VIEW=[];
@@ -222,7 +246,7 @@ function demo(){
     R.push([1,'FF1',6,1,999,'ปกติ','','',10,50,null,0,0,'Active']);ingest(R,'demo')});
   S.date='2026-11-03';save();init();
 }
-init();
+init();pull();
 </script>
 </body>
 </html>

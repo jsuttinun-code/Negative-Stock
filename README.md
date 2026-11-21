@@ -10,3 +10,9 @@
 
 ## ใช้งาน
 เปิด `index.html` หรือเปิดผ่าน GitHub Pages (Settings → Pages → Deploy from branch → main / root)
+
+## ให้ทุกเครื่องเห็นข้อมูลเดียวกัน (Vercel + Upstash Redis)
+1. อัปโหลดโฟลเดอร์ `api/` (ไฟล์ `api/data.js`) ขึ้น GitHub ที่ราก repo
+2. Vercel → โปรเจกต์ → Storage → Create Database → Upstash Redis (Free) → Connect to Project
+3. Settings → Environment Variables → เพิ่ม `APP_PASSWORD` = รหัสผ่านที่ต้องการ
+4. Deployments → Redeploy
