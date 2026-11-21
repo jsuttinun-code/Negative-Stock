@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ระบบตรวจสอบสต๊อกติดลบ · CPAXTRA</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#1d2330;--mut:#8a92a3;--bd:#e5e8ee;--g:#2b7a4b;--r:#d92b3a;--o:#d97706;--chip:#eef0f4;--sel:#eaf5ef}
+:root[data-theme=dark]{--bg:#12151b;--card:#1b1f27;--tx:#e8ebf2;--mut:#8f98ab;--bd:#2a303c;--g:#3aa468;--r:#ff6b78;--o:#f5a524;--chip:#262c37;--sel:#1d3328}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.4 "Sarabun","Noto Sans Thai",system-ui,sans-serif}
+header{background:var(--card);border-bottom:1px solid var(--bd);padding:10px 24px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.logo{width:40px;height:40px;border-radius:10px;background:var(--g);color:#fff;font-weight:800;font-size:12px;display:grid;place-items:end center;padding-bottom:3px}
+header h1{margin:0;font-size:18px}header small{color:var(--mut);display:block;font-size:12px}
+.sp{flex:1}
+button,select,input{font:inherit;color:var(--tx)}
+.btn{background:var(--g);color:#fff;border:0;border-radius:8px;padding:9px 16px;cursor:pointer;font-weight:600}
+.ic{background:var(--card);border:1px solid var(--bd);border-radius:8px;width:38px;height:38px;cursor:pointer;font-size:16px}
+select,input[type=text],input[type=number]{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:8px 10px}
+.dsel{background:var(--chip);border-radius:8px;padding:4px 10px;display:flex;gap:6px;align-items:center;color:var(--mut);font-size:12px}
+.dsel select{border:0;background:transparent;font-weight:700;font-size:14px}
+.wrap{max-width:1600px;margin:0 auto;padding:22px 32px}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.k{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px 18px}
+.k.c{cursor:pointer}.k.c:hover,.k.on{border-color:var(--g);box-shadow:0 0 0 1px var(--g) inset}
+.k span{color:var(--mut);font-size:12px}.k b{display:block;font-size:28px;margin:4px 0 2px}.k small{color:var(--mut);font-size:12px}
+h3{font-size:14px;margin:22px 0 10px}
+.divs{display:grid;grid-template-columns:repeat(9,1fr);gap:10px}
+.d{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;cursor:pointer}
+.d:hover{border-color:var(--g)}.d.on{border-color:var(--g);background:var(--sel);box-shadow:0 0 0 1px var(--g) inset}
+.d div{display:flex;justify-content:space-between;font-size:11px;color:var(--mut)}.d div b{color:var(--tx);font-size:14px}
+.d strong{display:block;font-size:24px;margin:4px 0 0}.d small{color:var(--mut);font-size:11px}
+.panel{background:var(--card);border:1px solid var(--bd);border-radius:12px;margin-top:20px}
+.bar{display:flex;gap:10px;align-items:center;padding:0 18px;border-bottom:1px solid var(--bd);flex-wrap:wrap}
+.tab{padding:16px 14px;cursor:pointer;color:var(--mut);border-bottom:3px solid transparent;font-weight:600}
+.tab.on{color:var(--tx);border-color:var(--g)}
+.bar input[type=text]{width:260px}
+.more{display:none;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;padding:12px 18px;border-bottom:1px solid var(--bd);align-items:end}
+.more.show{display:grid}.more label{font-size:12px;color:var(--mut);display:block}.more select,.more input{width:100%}
+.tw{overflow:auto;max-height:66vh}
+table{border-collapse:collapse;width:100%;white-space:nowrap}
+th{position:sticky;top:0;background:var(--card);font-size:11px;text-transform:uppercase;color:var(--tx);text-align:left;padding:12px;cursor:pointer;border-bottom:1px solid var(--bd)}
+td{padding:11px 12px;border-bottom:1px solid var(--bd)}
+.n{text-align:right;font-variant-numeric:tabular-nums}
+tr:hover td{background:var(--sel)}
+.neg{color:var(--r);font-weight:700}.mut{color:var(--mut)}
+.div{background:var(--chip);border-radius:6px;padding:3px 9px;font-weight:700;font-size:12px}
+.pill{background:var(--chip);border-radius:99px;padding:3px 10px;font-size:12px}.pill.new{color:var(--o)}.pill.old{color:var(--r);font-weight:700}
+.foot{display:flex;justify-content:space-between;padding:10px 18px;color:var(--mut);font-size:12px;align-items:center}
+.empty{padding:50px;text-align:center;color:var(--mut)}
+#drop{display:none;position:fixed;inset:0;background:#0008;color:#fff;font-size:26px;place-items:center;z-index:9}
+@media(max-width:1100px){.kpis{grid-template-columns:repeat(2,1fr)}.divs{grid-template-columns:repeat(3,1fr)}.wrap{padding:14px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">SOH</div>
+  <div><h1>ระบบตรวจสอบสต๊อกติดลบ (No Pack Size)</h1><small id="sub">กรองเฉพาะ ASOH &lt; 0 • ตัด Pack Size • นับอายุวันติดลบต่อเนื่อง</small></div>
+  <span class="sp"></span>
+  <div class="dsel">วันที่ข้อมูล: <select id="date"></select></div>
+  <button class="btn" onclick="fi.click()">⬆ Import ไฟล์</button>
+  <button class="ic" title="ตัวกรองเพิ่มเติม" onclick="$('more').classList.toggle('show')">⚙</button>
+  <button class="ic" title="โหมดมืด/สว่าง" onclick="theme()">🌙</button>
+  <input id="fi" type="file" accept=".xlsx,.xls,.csv" multiple hidden>
+</header>
+<div id="drop" style="place-items:center">วางไฟล์เพื่อ Import</div>
+<div class="wrap">
+  <div class="kpis" id="kpis"></div>
+  <h3>แยกตาม Division (คลิกเพื่อกรอง)</h3>
+  <div class="divs" id="divs"></div>
+  <div class="panel">
+    <div class="bar">
+      <div class="tab on" id="t_cur" onclick="tab('cur')"></div><div class="tab" id="t_res" onclick="tab('res')"></div>
+      <span class="sp"></span>
+      <input type="text" id="q" placeholder="ค้นหา Item No / ชื่อสินค้า / Supplier...">
+      <select id="age"><option value="">ทุกอายุวันติดลบ</option><option value="1">ใหม่ (1 วัน)</option><option value="2">2 วัน</option><option value="3">เรื้อรัง ≥ 3 วัน</option><option value="7">≥ 7 วัน</option></select>
+      <select id="status"></select>
+      <button class="btn" onclick="exp()">⬇ Export Excel</button>
+    </div>
+    <div class="more" id="more">
+      <div><label>สาขา</label><select id="store"></select></div>
+      <div><label>Buyer</label><select id="buyer"></select></div>
+      <div><label>Class</label><select id="cls"></select></div>
+      <div><label>ASOH ต่ำกว่า (≤)</label><input type="number" id="amin" placeholder="เช่น -10"></div>
+      <div><label>มูลค่าตั้งแต่ (฿)</label><input type="number" id="vmin" placeholder="เช่น 1000"></div>
+      <div><label><input type="checkbox" id="pack" checked> ตัด Pack Size</label><small class="mut" id="packn"></small></div>
+      <div><button class="ic" style="width:auto;padding:0 12px" onclick="reset()">รีเซ็ตตัวกรอง</button> <button class="ic" style="width:auto;padding:0 12px" onclick="demo()">ข้อมูลตัวอย่าง</button> <button class="ic" style="width:auto;padding:0 12px" onclick="wipe()">ล้างข้อมูลทั้งหมด</button></div>
+    </div>
+    <div class="tw"><table id="tbl"></table></div>
+    <div class="foot"><span id="cnt"></span><span id="pg"></span></div>
+  </div>
+</div>
+<script>
+const $=id=>document.getElementById(id), fi=$('fi');
+const DIVS=[['FV','ผักและผลไม้','Dept 1'],['BUT','เนื้อสัตว์','Dept 2'],['FS','อาหารทะเล','Dept 3'],['BK','เบเกอรี่','Dept 4'],['FZ','อาหารแช่แข็ง','Dept 5'],['DF','อาหารแห้ง','Dept 6-10'],['PM','โปรโมชั่น/อื่นๆ','Dept 21-24'],['NF','นอนฟู้ด','Dept 31-46'],['OTHER','อื่นๆ','นอกเงื่อนไข']];
+function divOf(d){d=+d;return d>=1&&d<=5?DIVS[d-1][0]:d>=6&&d<=10?'DF':d>=21&&d<=24?'PM':d>=31&&d<=46?'NF':'OTHER'}
+let S={snaps:{},date:'',tab:'cur',div:'',kpi:'',sk:'val',sd:-1,page:0}; const PS=200;
+try{S.snaps=JSON.parse(localStorage.getItem('nsk_snaps')||'{}')}catch(e){}
+try{document.documentElement.dataset.theme=localStorage.getItem('nsk_theme')||'light'}catch(e){}
+function theme(){const t=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=t;try{localStorage.setItem('nsk_theme',t)}catch(e){}}
+function save(){try{localStorage.setItem('nsk_snaps',JSON.stringify(S.snaps))}catch(e){alert('พื้นที่เก็บข้อมูลในเบราว์เซอร์เต็ม — ข้อมูลจะหายเมื่อปิดหน้านี้')}}
+
+// ---------- import ----------
+fi.onchange=e=>load(e.target.files);
+addEventListener('dragover',e=>{e.preventDefault();$('drop').style.display='grid'});
+addEventListener('dragleave',e=>{if(!e.relatedTarget)$('drop').style.display='none'});
+addEventListener('drop',e=>{e.preventDefault();$('drop').style.display='none';load(e.dataTransfer.files)});
+async function load(files){
+  const bad=[];let last='';
+  for(const f of files){try{
+    const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true,defval:null});
+    last=ingest(rows,f.name)||last;
+  }catch(e){bad.push(f.name)}}
+  if(bad.length)alert('อ่านไฟล์ไม่ได้ (ต้องเป็นรายงาน Item List): '+bad.join(', '));
+  if(last)S.date=last; save();init();
+}
+function ingest(rows,fname){
+  const hi=rows.findIndex(r=>r&&r.some(c=>String(c||'').trim()==='Item No')); if(hi<0)throw 0;
+  let store='-',date='';
+  rows.slice(0,hi).forEach(r=>(r||[]).forEach(c=>{c=String(c||'');let m;
+    if(m=c.match(/Store:\s*(\w+)/i))store=m[1];
+    if(m=c.match(/Date:\s*(\d{2})-(\d{2})-(\d{4})/))date=`${m[3]}-${m[2]}-${m[1]}`;}));
+  if(!date){const m=fname.match(/(\d{4})-(\d{2})-(\d{2})/);date=m?m[0]:new Date().toISOString().slice(0,10)}
+  const H=rows[hi].map(h=>String(h||'').trim()),ix=n=>H.indexOf(n);
+  let total=0,out=[];
+  for(const r of rows.slice(hi+1)){
+    if(!r||r[ix('Item No')]==null)continue; total++;
+    const g=n=>r[ix(n)], a=+g('ASOH')||0; if(!(a<0))continue;
+    const pk=g('Pack Size'); 
+    out.push({s:store,sup:String(g('Supplier')??''),buy:String(g('Buyer')??''),dept:+g('Dept No.')||0,cls:String(g('Class')??''),i:String(g('Item No')),
+      desc:g('Description')??'',ls:g('Last Sales Day')??'',ld:g('Last Del Day')??'',price:+g('Selling Price')||0,asoh:a,oo:+g('On Order')||0,it:+g('In Transit')||0,
+      st:g('Item Status')??'',pk:pk!=null&&String(pk).trim()!==''&&pk!==0});
+  }
+  (S.snaps[date]??={stores:{}}).stores[store]={total,rows:out,file:fname};
+  return date;
+}
+
+// ---------- data ----------
+const dates=()=>Object.keys(S.snaps).sort();
+const pack=()=>$('pack').checked;
+function rowsOf(d){return d?Object.values(S.snaps[d]?.stores||{}).flatMap(x=>x.rows).filter(r=>!(pack()&&r.pk)):[]}
+const key=r=>r.s+'|'+r.i; const maps={};
+function mapOf(d){return maps[d+pack()]??=new Map(rowsOf(d).map(r=>[key(r),r]))}
+function derive(){
+  const ds=dates(),ci=ds.indexOf(S.date),prevD=ci>0?ds[ci-1]:null,pm=prevD?mapOf(prevD):new Map(),cm=mapOf(S.date);
+  const cur=[...cm.values()].map(r=>{
+    let age=1,start=S.date;
+    for(let j=ci-1;j>=0&&mapOf(ds[j]).has(key(r));j--){age=Math.round((new Date(S.date)-new Date(ds[j]))/864e5)+1;start=ds[j]}
+    const p=pm.get(key(r));
+    return {...r,div:divOf(r.dept),val:Math.abs(r.asoh)*r.price,prev:p?p.asoh:null,age,start}});
+  const res=[...pm.values()].filter(r=>!cm.has(key(r))).map(r=>({...r,div:divOf(r.dept),val:Math.abs(r.asoh)*r.price,prev:r.asoh,age:0,start:prevD}));
+  return {cur,res,prevD};
+}
+
+// ---------- ui ----------
+function opts(id,arr,all){const el=$(id),v=el.value;el.innerHTML=`<option value="">${all}</option>`+[...new Set(arr.filter(x=>x!==''))].sort((a,b)=>String(a).localeCompare(String(b),'th',{numeric:true})).map(x=>`<option>${x}</option>`).join('');el.value=v}
+function init(){
+  const ds=dates();
+  if(!S.date||!S.snaps[S.date])S.date=ds[ds.length-1]||'';
+  $('date').innerHTML=ds.slice().reverse().map(d=>`<option value="${d}" ${d===S.date?'selected':''}>${d} (${Object.values(S.snaps[d].stores).reduce((a,x)=>a+x.rows.filter(r=>!(pack()&&r.pk)).length,0)} รายการ)</option>`).join('')||'<option>ยังไม่มีข้อมูล</option>';
+  const all=ds.length?Object.values(S.snaps[S.date].stores).flatMap(x=>x.rows):[];
+  opts('status',all.map(r=>r.st),'ทุก Item Status');opts('store',all.map(r=>r.s),'ทุกสาขา');opts('buyer',all.map(r=>r.buy),'ทุก Buyer');opts('cls',all.map(r=>r.cls),'ทุก Class');
+  render();
+}
+$('date').onchange=e=>{S.date=e.target.value;init()};
+['q','age','status','store','buyer','cls','amin','vmin','pack'].forEach(i=>$(i).oninput=()=>{S.page=0;i==='pack'?init():render()});
+function tab(t){S.tab=t;S.page=0;render()}
+function reset(){S.div='';S.kpi='';['q','age','status','store','buyer','cls','amin','vmin'].forEach(i=>$(i).value='');S.page=0;render()}
+function wipe(){if(confirm('ล้างข้อมูลที่นำเข้าทั้งหมด?')){S.snaps={};S.date='';for(const k in maps)delete maps[k];save();init()}}
+const f=(v,d=3)=>v==null?'-':(+v).toLocaleString('en-US',{maximumFractionDigits:d});
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+let VIEW=[];
+function render(){
+  const {cur,res}=derive(), chronic=cur.filter(r=>r.age>=3).length, newc=cur.filter(r=>r.age===1).length, tv=cur.reduce((a,r)=>a+r.val,0);
+  const tot=Object.values(S.snaps[S.date]?.stores||{}).reduce((a,x)=>a+x.total,0), exPk=Object.values(S.snaps[S.date]?.stores||{}).reduce((a,x)=>a+x.rows.filter(r=>r.pk).length,0);
+  const K=(id,l,v,sub,c,cls)=>`<div class="k ${cls||''} ${S.kpi===id?'on':''}" ${cls?`onclick="kp('${id}')"`:''}><span>${l}</span><b style="color:${c}">${v}</b><small>${sub}</small></div>`;
+  $('kpis').innerHTML=K('all','รายการติดลบ (No Pack)',cur.length.toLocaleString(),`จากทั้งหมด ${tot.toLocaleString()} แถว`,'var(--tx)','c')+
+    K('new','ติดลบใหม่วันนี้ (1 วัน)',newc,'เพิ่งพบในรอบข้อมูลนี้','var(--o)','c')+
+    K('old','ติดลบเรื้อรัง (≥ 3 วัน)',chronic,'ควรเร่งตรวจสอบสต๊อก','var(--r)','c')+
+    K('','มูลค่าติดลบรวม (ประมาณ)','฿'+Math.round(tv).toLocaleString(),'คำนวณจาก |ASOH| × Selling Price','var(--tx)')+
+    K('res','หายติดลบแล้ว (เทียบวันก่อน)',res.length,'รายการที่กลับมาเป็น ≥ 0','var(--g)','c');
+  $('packn').textContent=exPk?`ตัดออก ${exPk} รายการ`:'';
+  $('divs').innerHTML=DIVS.map(([c,n,d])=>{const x=cur.filter(r=>r.div===c);return `<div class="d ${S.div===c?'on':''}" onclick="dv('${c}')"><div><b>${c}</b><span>${d}</span></div><strong>${x.length}</strong><small>${n}</small></div>`}).join('');
+  $('t_cur').textContent=`รายการติดลบปัจจุบัน (${cur.length})`;$('t_res').textContent=`หายติดลบแล้ว (${res.length})`;
+  $('t_cur').className='tab'+(S.tab==='cur'?' on':'');$('t_res').className='tab'+(S.tab==='res'?' on':'');
+  let rows=S.tab==='cur'?cur:res;
+  const q=$('q').value.trim().toLowerCase(),a=$('age').value,st=$('status').value,sto=$('store').value,b=$('buyer').value,c=$('cls').value,am=$('amin').value,vm=$('vmin').value;
+  rows=rows.filter(r=>(!S.div||r.div===S.div)&&(!q||(r.i+' '+r.desc+' '+r.sup).toLowerCase().includes(q))&&(!st||r.st===st)&&(!sto||r.s===sto)&&(!b||r.buy===b)&&(!c||r.cls===c)
+    &&(am===''||r.asoh<=+am)&&(vm===''||r.val>=+vm)&&(!a||(a==='1'?r.age===1:a==='2'?r.age===2:r.age>=+a))
+    &&(S.tab!=='cur'||!S.kpi||S.kpi==='all'||(S.kpi==='new'&&r.age===1)||(S.kpi==='old'&&r.age>=3)));
+  const KEY={div:'div',dept:'dept',i:'i',desc:'desc',asoh:'asoh',prev:'prev',age:'age',start:'start',val:'val',oo:'oo',ls:'ls',st:'st'}[S.sk]||'val';
+  rows.sort((x,y)=>{const p=x[KEY],q2=y[KEY];return (typeof p==='number'||p==null?(p??-1e18)-(q2??-1e18):String(p).localeCompare(String(q2),'th',{numeric:true}))*S.sd});
+  VIEW=rows;
+  const cols=S.tab==='cur'?[['div','Div'],['dept','Dept'],['i','Item No'],['desc','Description'],['asoh','ASOH','n'],['prev','เทียบวันก่อน','n'],['val','มูลค่า (฿)','n'],['age','ติดลบต่อเนื่อง'],['start','เริ่มติดลบวันที่'],['oo','On Order / Transit','n'],['ls','Last Sales / Del'],['st','Status']]
+    :[['div','Div'],['dept','Dept'],['i','Item No'],['desc','Description'],['prev','ASOH วันก่อน','n'],['val','มูลค่าวันก่อน (฿)','n'],['start','วันที่ข้อมูลก่อนหน้า'],['st','Status']];
+  const pages=Math.max(1,Math.ceil(rows.length/PS));S.page=Math.min(S.page,pages-1);
+  const cell=(k,r)=>({div:`<span class="div">${r.div}</span>`,dept:r.dept,i:`<b>${esc(r.i)}</b>`,desc:esc(r.desc),asoh:`<span class="neg">${f(r.asoh)}</span>`,
+    prev:r.prev==null?'<span class="mut">-</span>':f(r.prev),val:f(r.val,0),start:r.start,oo:`${f(r.oo)} / ${f(r.it)}`,ls:`${r.ls} / ${r.ld}`,st:r.st,
+    age:`<span class="pill ${r.age===1?'new':r.age>=3?'old':''}">${r.age} วัน${r.age===1?' (ใหม่)':''}</span>`}[k]);
+  $('tbl').innerHTML=rows.length?`<thead><tr>${cols.map(([k,l,n])=>`<th class="${n||''}" onclick="so('${k}')">${l}${S.sk===k?(S.sd>0?' ▲':' ▼'):' ↕'}</th>`).join('')}</tr></thead><tbody>`+
+    rows.slice(S.page*PS,S.page*PS+PS).map(r=>'<tr>'+cols.map(([k,,n])=>`<td class="${n||''}">${cell(k,r)}</td>`).join('')+'</tr>').join('')+'</tbody>'
+    :`<tr><td class="empty">${dates().length?'ไม่พบรายการตามตัวกรอง':'กด Import ไฟล์ Item List เพื่อเริ่มต้น'}</td></tr>`;
+  $('cnt').textContent=`แสดง ${rows.length.toLocaleString()} รายการ · เรียงตาม ${S.sk==='val'&&S.sd<0?'มูลค่าสูง → ต่ำ':S.sk}`;
+  $('pg').innerHTML=pages>1?`<a href="#" onclick="pgo(-1);return false">‹</a> หน้า ${S.page+1}/${pages} <a href="#" onclick="pgo(1);return false">›</a>`:'';
+}
+function dv(c){S.div=S.div===c?'':c;S.page=0;render()}
+function kp(k){if(k==='res'){S.kpi='';tab('res');return}S.tab='cur';S.kpi=S.kpi===k||k==='all'?'':k;S.page=0;render()}
+function so(k){S.sd=S.sk===k?-S.sd:(['val','asoh','age','oo'].includes(k)?-1:1);S.sk=k;render()}
+function pgo(n){S.page+=n;render()}
+function exp(){
+  if(!VIEW.length)return alert('ไม่มีข้อมูลให้ส่งออก');
+  const out=VIEW.map(r=>({สาขา:r.s,Division:r.div,Dept:r.dept,Supplier:r.sup,Buyer:r.buy,Class:r.cls,'Item No':r.i,Description:r.desc,ASOH:r.asoh,เทียบวันก่อน:r.prev,'มูลค่า(฿)':Math.round(r.val),'ติดลบต่อเนื่อง(วัน)':r.age,เริ่มติดลบวันที่:r.start,'On Order':r.oo,'In Transit':r.it,'Last Sales':r.ls,'Last Del':r.ld,Status:r.st}));
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(out),S.tab==='cur'?'Negative':'Resolved');
+  XLSX.writeFile(wb,`negative_stock_${S.date}.xlsx`);
+}
+function demo(){
+  const nm=['ขั้วตับหมู กก.ละ','เซฟแพ็ค หัวไหล่หมู','น้ำดื่ม 600 มล.','ข้าวสาร 5 กก.','ปลาแซลมอนสด กก.ละ','ขนมปังแซนวิช','กุ้งแช่แข็ง 1 กก.','ผงซักฟอก 3 กก.','ผักกาดหอม กก.ละ'],dp=[2,2,6,7,3,4,5,31,1];
+  ['01','02','03'].forEach((day,n)=>{const R=[['Item List'],['Store: 10'],['Date: '+day+'-11-2026 05:00'],['Supplier','Buyer','Dept No.','Class','Item No','Description','Last Sales Day','Last Del Day','Selling Price','ASOH','Pack Size','On Order','In Transit','Item Status']];
+    nm.forEach((x,i)=>{if(i>=4+n*2&&n<2&&i%2)return;R.push([20000+i,'FF1',dp[i],1,100+i,x,day+'-11-2026','28-10-2026',30+i*9,(i<6||n>0)&&!(i===8&&n==2)?-(i+1)*(n+1)*1.37:5,i===7?'PACK':null,40,0,'Active'])});
+    R.push([1,'FF1',6,1,999,'ปกติ','','',10,50,null,0,0,'Active']);ingest(R,'demo')});
+  S.date='2026-11-03';save();init();
+}
+init();
+</script>
+</body>
+</html>
