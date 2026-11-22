@@ -291,7 +291,7 @@ function demo(){
 async function buildPrint(EJ,rows,m){
   const wb=new EJ.Workbook(),F='Tahoma',now=new Date(),p2=n=>String(n).padStart(2,'0');
   const ws=wb.addWorksheet('Item List Negative',{pageSetup:{paperSize:9,orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0,horizontalCentered:true,printTitlesRow:'10:10',margins:{left:.3,right:.3,top:.4,bottom:.55,header:.2,footer:.25}},views:[{state:'frozen',ySplit:10}]});
-  const heads=[['Dept No.',8],['Class',7],['Item No',10],['Description',38],['Last Sales Day',12],['Last Del Day',12],['Selling Price',10],['ASOH',8],['Customer Order',9],['Stock',8],['Count',9],['Diff',9],['On Order',9],['In Transit',9],['SOURCE METHOD',11],['Reorder Way',8],['Stock Day',8],['Item Status',13],['Aging Status',8],['Location',12]];
+  const heads=[['Dept No.',8],['Class',7],['Item No',10],['Description',38],['Last Sales Day',12],['Last Del Day',12],['Selling Price',10],['ASOH',8],['Customer Order',9],['Stock',8],['Count',9],['Diff',9],['On Order',9],['In Transit',9],['SOURCE METHOD',11],['Reorder Way',8],['Stock Day',8],['Item Status',13],['Aging Status',8]];
   ws.columns=heads.map(([h,w])=>({width:w}));
   const put=(a,v,o={})=>{const c=ws.getCell(a);c.value=v;c.font={name:F,size:o.size||9,bold:!!o.b,underline:!!o.u,color:o.color?{argb:o.color}:undefined};if(o.al)c.alignment=o.al;return c};
   put('A1','makro',{size:24,b:1,color:'FFE10019'});put('A2','Cash & Carry',{size:11,b:1,color:'FF5B6B8A'});
@@ -307,14 +307,14 @@ async function buildPrint(EJ,rows,m){
   const R=rows.slice().sort((a,b)=>a.dept-b.dept||(+a.cls||0)-(+b.cls||0)||(+a.i||0)-(+b.i||0)||String(a.i).localeCompare(String(b.i)));
   const dot={style:'dotted',color:{argb:'FF444444'}};
   R.forEach((r,k)=>{
-    const vals=[r.dept,+r.cls||r.cls,+r.i||r.i,r.desc,r.ls,r.ld,r.price,r.asoh,r.co||0,r.usoh,null,null,r.oo,r.it,r.src,r.rw,r.sd===''?'':+r.sd,r.st,r.ag,r.loc],row=ws.getRow(11+k);
+    const vals=[r.dept,+r.cls||r.cls,+r.i||r.i,r.desc,r.ls,r.ld,r.price,r.asoh,r.usoh,Math.round((r.asoh+r.usoh)*1000)/1000,null,null,r.oo,r.it,r.src,r.rw,r.sd===''?'':+r.sd,r.st,r.ag],row=ws.getRow(11+k);
     vals.forEach((v,i)=>{const c=row.getCell(i+1);c.value=v;c.font={name:F,size:9};c.border={bottom:dot};
-      c.alignment={vertical:'middle',horizontal:[0,1,2,4,5,14,15,17,18,19,3].includes(i)?(i===3?'left':'center'):'right'};
-      if(i===6)c.numFmt='#,##0.##';if(i===7||i===9)c.numFmt='#,##0.###';if(i===12||i===13)c.numFmt='#,##0.###'});
+      c.alignment={vertical:'middle',horizontal:[0,1,2,4,5,14,15,17,18,3].includes(i)?(i===3?'left':'center'):'right'};
+      if(i===6)c.numFmt='#,##0.##';if(i>=7&&i<=9)c.numFmt='#,##0.###';if(i===12||i===13)c.numFmt='#,##0.###'});
     row.height=16});
   const last=10+R.length,sg=last+3;
-  ws.mergeCells(`N${sg}:T${sg}`);put(`N${sg}`,'ลายเซ็นต์......................................................ผู้ตรวจนับ',{size:10,al:{horizontal:'right'}});
-  ws.pageSetup.printArea=`A1:T${sg}`;
+  ws.mergeCells(`N${sg}:S${sg}`);put(`N${sg}`,'ลายเซ็นต์......................................................ผู้ตรวจนับ',{size:10,al:{horizontal:'right'}});
+  ws.pageSetup.printArea=`A1:S${sg}`;
   ws.headerFooter.oddFooter=`&L&8Printed: ${p2(now.getDate())}-${p2(now.getMonth()+1)}-${now.getFullYear()} ${p2(now.getHours())}:${p2(now.getMinutes())}&R&8Page &P of &N`;
   return wb.xlsx.writeBuffer();
 }
