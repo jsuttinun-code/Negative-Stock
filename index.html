@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ระบบตรวจสอบสต๊อกติดลบ · CPAXTRA</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
 :root{--bg:#f8f4ef;--card:#fff;--tx:#2b3140;--mut:#8a92a3;--bd:#ece7e0;--g:#f5a000;--ok:#1fb5a3;--r:#e8465a;--o:#e08a00;--chip:#f1eee9;--sel:#fff4de}
 :root[data-theme=dark]{--bg:#12151b;--card:#1b1f27;--tx:#e8ebf2;--mut:#8f98ab;--bd:#2a303c;--g:#fbbf24;--ok:#2dd4bf;--r:#ff6b78;--o:#f5a524;--chip:#262c37;--sel:#3a2f14}
@@ -111,7 +112,7 @@ body{padding-left:60px}
       <input type="text" id="q" placeholder="ค้นหา Item No / ชื่อสินค้า / Supplier...">
       <select id="age"><option value="">ทุกอายุวันติดลบ</option><option value="1">ใหม่ (1 วัน)</option><option value="2">2 วัน</option><option value="3">เรื้อรัง ≥ 3 วัน</option><option value="7">≥ 7 วัน</option></select>
       <select id="status"></select>
-      <button class="btn" onclick="exp()">⬇ Export Excel</button>
+      <button class="btn" onclick="exp()">⬇ Export Excel (ฟอร์มพิมพ์)</button><button class="ic" style="width:auto;padding:0 12px" onclick="exp('data')">ข้อมูลดิบ</button>
     </div>
     <div class="more" id="more">
       <div><label>สาขา</label><select id="store"></select></div>
@@ -189,7 +190,7 @@ function ingest(rows,fname){
     const pk=g('Pack Size'); 
     out.push({s:store,sup:String(g('Supplier')??''),buy:String(g('Buyer')??''),dept:+g('Dept No.')||0,cls:String(g('Class')??''),i:String(g('Item No')),
       desc:g('Description')??'',ls:g('Last Sales Day')??'',ld:g('Last Del Day')??'',price:+g('Selling Price')||0,asoh:a,oo:+g('On Order')||0,it:+g('In Transit')||0,
-      st:g('Item Status')??'',pk:pk!=null&&String(pk).trim()!==''&&pk!==0});
+      st:g('Item Status')??'',usoh:+g('USOH')||0,co:+g('Customer Order')||0,src:g('SOURCE METHOD')??'',rw:g('Reorder Way')??'',sd:g('Stock Day')??'',ag:g('Aging Status')??'',loc:g('Location')??'',pk:pk!=null&&String(pk).trim()!==''&&pk!==0});
   }
   (S.snaps[date]??={stores:{}}).stores[store]={total,rows:out,file:fname};
   return date;
@@ -273,7 +274,7 @@ function dv(c){S.div=S.div===c?'':c;S.page=0;render()}
 function kp(k){if(k==='res'){S.kpi='';tab('res');return}S.tab='cur';S.kpi=S.kpi===k||k==='all'?'':k;S.page=0;render()}
 function so(k){S.sd=S.sk===k?-S.sd:(['val','asoh','age','oo'].includes(k)?-1:1);S.sk=k;render()}
 function pgo(n){S.page+=n;render()}
-function exp(){
+function expData(){
   if(!VIEW.length)return alert('ไม่มีข้อมูลให้ส่งออก');
   const out=VIEW.map(r=>({สาขา:r.s,Division:r.div,Dept:r.dept,Supplier:r.sup,Buyer:r.buy,Class:r.cls,'Item No':r.i,Description:r.desc,ASOH:r.asoh,เทียบวันก่อน:r.prev,'มูลค่า(฿)':Math.round(r.val),'ติดลบต่อเนื่อง(วัน)':r.age,เริ่มติดลบวันที่:r.start,'On Order':r.oo,'In Transit':r.it,'Last Sales':r.ls,'Last Del':r.ld,Status:r.st}));
   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(out),S.tab==='cur'?'Negative':'Resolved');
@@ -286,6 +287,48 @@ function demo(){
     R.push([1,'FF1',6,1,999,'ปกติ','','',10,50,null,0,0,'Active']);ingest(R,'demo')});
   S.date='2026-11-03';save();init();
 }
+// ---------- Export: ฟอร์มพิมพ์ Item List Negative ----------
+async function buildPrint(EJ,rows,m){
+  const wb=new EJ.Workbook(),F='Tahoma',now=new Date(),p2=n=>String(n).padStart(2,'0');
+  const ws=wb.addWorksheet('Item List Negative',{pageSetup:{paperSize:9,orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0,horizontalCentered:true,printTitlesRow:'10:10',margins:{left:.3,right:.3,top:.4,bottom:.55,header:.2,footer:.25}},views:[{state:'frozen',ySplit:10}]});
+  const heads=[['Dept No.',8],['Class',7],['Item No',10],['Description',38],['Last Sales Day',12],['Last Del Day',12],['Selling Price',10],['ASOH',8],['Customer Order',9],['Stock',8],['Count',9],['Diff',9],['On Order',9],['In Transit',9],['SOURCE METHOD',11],['Reorder Way',8],['Stock Day',8],['Item Status',13],['Aging Status',8],['Location',12]];
+  ws.columns=heads.map(([h,w])=>({width:w}));
+  const put=(a,v,o={})=>{const c=ws.getCell(a);c.value=v;c.font={name:F,size:o.size||9,bold:!!o.b,underline:!!o.u,color:o.color?{argb:o.color}:undefined};if(o.al)c.alignment=o.al;return c};
+  put('A1','makro',{size:24,b:1,color:'FFE10019'});put('A2','Cash & Carry',{size:11,b:1,color:'FF5B6B8A'});
+  ws.mergeCells('E1:J2');put('E1','Item List Negative',{size:16,b:1,u:1,al:{horizontal:'center',vertical:'middle'}});
+  put('M1','Store: '+m.store,{size:9});put('M3','Date: '+m.date.split('-').reverse().join('-'),{size:9});
+  put('A5','Item Basket:',{b:1});put('C5','NULL');put('F5','Department:',{b:1});put('I5',m.depts);
+  put('A6','Supplier:',{b:1});put('C6','All');put('F6','Class:',{b:1});put('I6','All');
+  put('A7','Stock qty < 0',{b:1});put('F7','Avg. Sales more than:',{b:1});
+  put('A8','Stock in days lower than:',{b:1});put('F8','Stock in days higher',{b:1});put('I8','Days-not-sold more than:',{b:1});
+  const thin={style:'thin',color:{argb:'FF555555'}},hr=ws.getRow(10);hr.height=32;
+  heads.forEach(([h],i)=>{const c=hr.getCell(i+1);c.value=h;c.font={name:F,size:8,bold:true};c.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:h==='Stock'?'FFE06BD0':'FF9BB7D8'}};c.border={top:thin,bottom:thin,left:thin,right:thin}});
+  const R=rows.slice().sort((a,b)=>a.dept-b.dept||(+a.cls||0)-(+b.cls||0)||(+a.i||0)-(+b.i||0)||String(a.i).localeCompare(String(b.i)));
+  const dot={style:'dotted',color:{argb:'FF444444'}};
+  R.forEach((r,k)=>{
+    const vals=[r.dept,+r.cls||r.cls,+r.i||r.i,r.desc,r.ls,r.ld,r.price,r.asoh,r.co||0,r.usoh,null,null,r.oo,r.it,r.src,r.rw,r.sd===''?'':+r.sd,r.st,r.ag,r.loc],row=ws.getRow(11+k);
+    vals.forEach((v,i)=>{const c=row.getCell(i+1);c.value=v;c.font={name:F,size:9};c.border={bottom:dot};
+      c.alignment={vertical:'middle',horizontal:[0,1,2,4,5,14,15,17,18,19,3].includes(i)?(i===3?'left':'center'):'right'};
+      if(i===6)c.numFmt='#,##0.##';if(i===7||i===9)c.numFmt='#,##0.###';if(i===12||i===13)c.numFmt='#,##0.###'});
+    row.height=16});
+  const last=10+R.length,sg=last+3;
+  ws.mergeCells(`N${sg}:T${sg}`);put(`N${sg}`,'ลายเซ็นต์......................................................ผู้ตรวจนับ',{size:10,al:{horizontal:'right'}});
+  ws.pageSetup.printArea=`A1:T${sg}`;
+  ws.headerFooter.oddFooter=`&L&8Printed: ${p2(now.getDate())}-${p2(now.getMonth()+1)}-${now.getFullYear()} ${p2(now.getHours())}:${p2(now.getMinutes())}&R&8Page &P of &N`;
+  return wb.xlsx.writeBuffer();
+}
+async function exp(kind){
+  if(!VIEW.length)return alert('ไม่มีข้อมูลให้ส่งออก');
+  if(kind==='data'||S.tab!=='cur')return expData();
+  try{
+    const m={date:S.date,store:[...new Set(VIEW.map(r=>r.s))].join(', '),depts:[...new Set(VIEW.map(r=>r.dept))].sort((a,b)=>a-b).join(',')};
+    const buf=await buildPrint(window.ExcelJS,VIEW,m),a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+    a.download=`Item_List_Negative_${S.date}.xlsx`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+  }catch(e){console.error(e);alert('สร้างฟอร์มพิมพ์ไม่สำเร็จ (โหลดตัวสร้าง Excel ไม่ได้) — ส่งออกแบบข้อมูลดิบแทน');expData()}
+}
+
 // ---------- Executive dashboard ----------
 const money=v=>'฿'+Math.round(v).toLocaleString('en-US'),cmp=v=>v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':Math.round(v);
 const PAL=['#ff6b9a','#f9a825','#03a9f4','#7c4dff','#20bfae','#ef5350','#90a4ae','#3f51b5','#9ccc3c'],dcol=c=>PAL[DIVS.findIndex(x=>x[0]===c)];
@@ -342,7 +385,7 @@ function renderDash(){
     ${CD('สัดส่วนมูลค่าตาม Division',pie(dvs.map(x=>[x.c,x.v,dcol(x.c)])))}
     ${CD('มูลค่ารายวันแยก Division',stacked(d8)+'<div style="text-align:center">'+DIVS.map(([c])=>`<span style="font-size:11px;margin:0 5px"><i style="display:inline-block;width:10px;height:10px;background:${dcol(c)}"></i> ${c}</span>`).join('')+'</div>')}
   </div><div>
-    <div class="tl">${tile('linear-gradient(135deg,#4a7cf6,#5a8cff)','💰',money(tv),'มูลค่าติดลบรวม')}${tile('linear-gradient(135deg,#ef4b62,#f46a7e)','⚠️',ch.length,'ติดลบเรื้อรัง ≥ 3 วัน')}${tile('linear-gradient(135deg,#17b8a6,#2fd0bd)','✅',res.length,'หายติดลบแล้ว')}${tile('linear-gradient(135deg,#7a4df0,#9566ff)','🆕',nw.length,'ติดลบใหม่วันนี้')}</div>
+    <div class="tl">${tile('linear-gradient(135deg,#4a7cf6,#5a8cff)','💰',money(tv),'Total Negative Value')}${tile('linear-gradient(135deg,#ef4b62,#f46a7e)','⚠️',ch.length,'Chronic Negative (≥ 3 days)')}${tile('linear-gradient(135deg,#17b8a6,#2fd0bd)','✅',res.length,'Recovered (No Longer Negative)')}${tile('linear-gradient(135deg,#7a4df0,#9566ff)','🆕',nw.length,'New Negative Today')}</div>
     ${CD('Key Performance Indicators',`<div class="kr">${kp('มูลค่าติดลบ',arrow(pct(tv,pv)))}${kp('จำนวนรายการ',arrow(pct(cur.length,pn)))}${kp('สัดส่วนเรื้อรัง',`<span style="color:var(--r)">${pc.toFixed(1)}%</span>`)}${kp('รายการติดลบ',`<span>${cur.length.toLocaleString()}</span>`)}</div>
       <div style="padding:0 20px 20px;overflow:auto"><table class="gt"><thead><tr><th>Division</th><th>Dept</th><th class="n">รายการ</th><th class="n">มูลค่าปัจจุบัน</th><th class="n">วันก่อน</th><th>เปลี่ยนแปลง</th></tr></thead><tbody>${dvs.map(x=>`<tr class="cl" onclick="goDiv('${x.c}')"><td><span class="lk">${x.c} · ${x.n}</span></td><td>${x.d}</td><td class="n">${x.cnt}</td><td class="n">${money(x.v)}</td><td class="n">${prevD?money(x.pv):'-'}</td><td>${prevD?bd(x.v,x.pv):'-'}</td></tr>`).join('')}</tbody></table></div>`,1)}
     ${CD('10 อันดับสินค้าติดลบมูลค่าสูงสุด',`<div style="padding:14px 20px 20px;overflow:auto"><table class="gt"><thead><tr><th></th><th>รายการ</th><th>อายุติดลบ</th><th>Supplier</th><th>Status</th><th>เริ่มติดลบ</th><th class="n">ASOH</th><th class="n">มูลค่า (฿)</th></tr></thead><tbody>${top.map(r=>`<tr><td class="pl">＋</td><td><b>${esc(r.desc)}</b><div class="mut" style="font-size:12px">${esc(r.i)} · ${r.div} · Buyer ${esc(r.buy)}</div></td><td><div class="pb" title="${r.age} วัน"><i style="width:${Math.min(100,r.age/7*100)}%"></i></div><small class="mut">${r.age} วัน</small></td><td>${esc(r.sup)}</td><td><span class="bg ${r.st==='Active'?'t':'n'}">${esc(r.st)}</span></td><td>${r.start}</td><td class="n neg">${f(r.asoh)}</td><td class="n">${f(r.val,0)}</td></tr>`).join('')}</tbody></table></div>`,1)}
